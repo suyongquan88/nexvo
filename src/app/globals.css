@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+/* Nexvo Design System — tokens sourced from src/design-system/colors.ts */
+:root {
+  --background: #faf9fc;
+  --foreground: #1e1b2e;
+  --nexvo-card: #ffffff;
+  --nexvo-muted: #6b6680;
+  --nexvo-muted-subtle: #9490a8;
+  --nexvo-border: #e8e4f0;
+  --nexvo-border-strong: #d4cfe0;
+  --nexvo-purple-50: #f5f3ff;
+  --nexvo-purple-100: #ede9fe;
+  --nexvo-purple-200: #ddd6fe;
+  --nexvo-purple-300: #c4b5fd;
+  --nexvo-purple-400: #a78bfa;
+  --nexvo-purple-500: #8b5cf6;
+  --nexvo-purple-600: #7c3aed;
+  --nexvo-purple-700: #6d28d9;
+  --nexvo-purple-800: #5b21b6;
+  --nexvo-coral-50: #fff5f2;
+  --nexvo-coral-100: #ffe8e1;
+  --nexvo-coral-400: #ff8e72;
+  --nexvo-coral-500: #ff6b6b;
+  --nexvo-coral-600: #f97316;
+  --nexvo-gradient-brand: linear-gradient(
+    135deg,
+    var(--nexvo-purple-600) 0%,
+    var(--nexvo-coral-500) 100%
+  );
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-nexvo-card: var(--nexvo-card);
+  --color-nexvo-muted: var(--nexvo-muted);
+  --color-nexvo-muted-subtle: var(--nexvo-muted-subtle);
+  --color-nexvo-border: var(--nexvo-border);
+  --color-nexvo-border-strong: var(--nexvo-border-strong);
+  --color-nexvo-purple-50: var(--nexvo-purple-50);
+  --color-nexvo-purple-100: var(--nexvo-purple-100);
+  --color-nexvo-purple-200: var(--nexvo-purple-200);
+  --color-nexvo-purple-300: var(--nexvo-purple-300);
+  --color-nexvo-purple-400: var(--nexvo-purple-400);
+  --color-nexvo-purple-500: var(--nexvo-purple-500);
+  --color-nexvo-purple-600: var(--nexvo-purple-600);
+  --color-nexvo-purple-700: var(--nexvo-purple-700);
+  --color-nexvo-purple-800: var(--nexvo-purple-800);
+  --color-nexvo-coral-50: var(--nexvo-coral-50);
+  --color-nexvo-coral-100: var(--nexvo-coral-100);
+  --color-nexvo-coral-400: var(--nexvo-coral-400);
+  --color-nexvo-coral-500: var(--nexvo-coral-500);
+  --color-nexvo-coral-600: var(--nexvo-coral-600);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Brand utilities */
+.nexvo-gradient-text {
+  background: var(--nexvo-gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.nexvo-gradient-bg {
+  background: var(--nexvo-gradient-brand);
+}
+
+.nexvo-hero-glow {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.18), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(255, 107, 107, 0.12), transparent),
+    radial-gradient(ellipse 50% 30% at 0% 10%, rgba(139, 92, 246, 0.1), transparent);
+}
+
+/* Typography presets */
+.nexvo-text-display {
+  @apply text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl;
+}
+
+.nexvo-text-h1 {
+  @apply text-3xl font-bold tracking-tight sm:text-4xl;
+}
+
+.nexvo-text-h2 {
+  @apply text-lg font-semibold sm:text-xl;
+}
+
+.nexvo-text-body {
+  @apply text-sm leading-relaxed sm:text-base;
+}
+
+.nexvo-text-caption {
+  @apply text-xs leading-relaxed sm:text-sm;
+}
+
+.nexvo-text-eyebrow {
+  @apply text-xs font-semibold uppercase tracking-wider text-nexvo-purple-700;
+}
+
+/* Form controls */
+.nexvo-input {
+  @apply min-h-12 w-full rounded-xl border border-nexvo-border bg-nexvo-card px-4 py-3 text-base text-foreground transition placeholder:text-nexvo-muted/70 focus:border-nexvo-purple-500 focus:outline-none focus:ring-2 focus:ring-nexvo-purple-200 disabled:opacity-60;
+}
+
+.nexvo-textarea {
+  @apply w-full resize-none rounded-xl border-0 bg-transparent text-base leading-relaxed text-foreground placeholder:text-nexvo-muted/70 focus:outline-none disabled:opacity-60 sm:text-lg;
+}
