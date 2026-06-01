@@ -6,10 +6,9 @@ import { TRUST_ENGINE_LAYERS } from "@/lib/trust-engine-layers";
 export function TrustEngineFlow() {
   return (
     <Card variant="default" padding="md" className="sm:p-8">
-      <h2 className={textStyles.h2}>How the layers work together</h2>
+      <h2 className={textStyles.h2}>Trust Engine flow</h2>
       <p className={cn(textStyles.muted, "mt-1")}>
-        Data flows upward through four independent checks before a Trust Score
-        is shown.
+        Your question moves through four layers before a Trust Score is shown.
       </p>
 
       <ol className="relative mt-8 space-y-0">

@@ -10,69 +10,27 @@ export type TrustMetrics = {
 };
 
 type TrustScoreCardProps = {
-  trust: TrustMetrics | null;
-  isLoading?: boolean;
+  score: number;
+  confidence: number;
+  evidenceCount: number;
+  className?: string;
 };
 
-function ScoreRing({ score }: { score: number }) {
-  const radius = 52;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
-
-  return (
-    <div className="relative mx-auto h-32 w-32">
-      <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
-        <circle
-          cx="60"
-          cy="60"
-          r={radius}
-          fill="none"
-          stroke="var(--nexvo-purple-100)"
-          strokeWidth="10"
-        />
-        <circle
-          cx="60"
-          cy="60"
-          r={radius}
-          fill="none"
-          stroke="url(#trustGradient)"
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          className="transition-[stroke-dashoffset] duration-700 ease-out"
-        />
-        <defs>
-          <linearGradient id="trustGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="var(--nexvo-purple-600)" />
-            <stop offset="100%" stopColor="var(--nexvo-coral-500)" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold text-foreground">{score}</span>
-        <span className={cn(textStyles.caption, "font-medium uppercase tracking-wide")}>
-          Trust
-        </span>
-      </div>
-    </div>
-  );
+function formatConfidence(confidence: number): number {
+  return confidence <= 1 ? Math.round(confidence * 100) : Math.round(confidence);
 }
 
-function Skeleton() {
-  return (
-    <div className="animate-pulse space-y-4">
-      <div className="mx-auto h-32 w-32 rounded-full bg-nexvo-purple-100" />
-      <div className="h-3 rounded-full bg-nexvo-purple-100" />
-      <div className="h-3 w-2/3 rounded-full bg-nexvo-purple-100" />
-    </div>
-  );
+function evidenceLabel(count: number): string {
+  return count === 1 ? "verified signal" : "verified signals";
 }
 
-export function TrustScoreCard({ trust, isLoading = false }: TrustScoreCardProps) {
-  const confidencePercent = trust
-    ? Math.round(trust.confidence * 100)
-    : 0;
+export function TrustScoreCard({
+  score,
+  confidence,
+  evidenceCount,
+  className,
+}: TrustScoreCardProps) {
+  const confidencePercent = formatConfidence(confidence);
 
   return (
     <Card
@@ -80,69 +38,43 @@ export function TrustScoreCard({ trust, isLoading = false }: TrustScoreCardProps
       aria-label="Trust score"
       variant="default"
       padding="md"
-      className="flex h-full flex-col"
+      className={cn("flex flex-col", className)}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h2 className={textStyles.h2}>Trust Score</h2>
-          <p className={cn(textStyles.muted, "mt-1")}>
-            How much you can rely on this recommendation
-          </p>
-        </div>
+      <div className="flex items-start justify-between gap-3">
+        <p className={cn(textStyles.eyebrow, "normal-case tracking-normal")}>
+          Trust Score
+        </p>
         <Link
           href="/why"
-          className={cn(
-            "shrink-0 rounded-full bg-nexvo-purple-50 px-2.5 py-1 text-xs font-medium text-nexvo-purple-700 transition hover:bg-nexvo-purple-100",
-            textStyles.caption
-          )}
+          className="shrink-0 text-xs font-medium text-nexvo-purple-700 transition hover:text-nexvo-purple-600"
         >
-          Why? · v0.1
+          Why?
         </Link>
       </div>
 
-      <div className="mt-6 flex flex-1 flex-col justify-center">
-        {isLoading ? (
-          <Skeleton />
-        ) : trust ? (
-          <>
-            <ScoreRing score={trust.score} />
-
-            <div className="mt-6 space-y-4">
-              <div>
-                <div className={cn("mb-1.5 flex justify-between", textStyles.caption)}>
-                  <span className="text-nexvo-muted">Confidence</span>
-                  <span className="font-medium text-foreground">
-                    {confidencePercent}%
-                  </span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-nexvo-purple-100">
-                  <div
-                    className="nexvo-gradient-bg h-full rounded-full transition-all duration-700"
-                    style={{ width: `${confidencePercent}%` }}
-                  />
-                </div>
-              </div>
-
-              <Card variant="tinted" padding="sm" className="flex items-center justify-between">
-                <span className={textStyles.caption}>Evidence</span>
-                <span className="text-lg font-semibold text-nexvo-purple-700">
-                  {trust.evidenceCount}{" "}
-                  <span className={cn(textStyles.caption, "font-normal text-nexvo-muted")}>
-                    {trust.evidenceCount === 1 ? "source" : "sources"}
-                  </span>
-                </span>
-              </Card>
-            </div>
-          </>
-        ) : (
-          <Card variant="dashed" padding="md" className="py-10 text-center">
-            <p className={cn(textStyles.label)}>No score yet</p>
-            <p className={cn(textStyles.muted, "mt-2")}>
-              Ask a question to see trust score, confidence, and evidence count.
-            </p>
-          </Card>
-        )}
+      <div className="mt-6 flex items-baseline gap-1.5">
+        <span className="text-5xl font-semibold tabular-nums tracking-tight text-foreground sm:text-6xl">
+          {score}
+        </span>
+        <span className="text-lg font-normal text-nexvo-muted sm:text-xl">
+          / 100
+        </span>
       </div>
+
+      <dl className="mt-8 space-y-4 border-t border-nexvo-border pt-6">
+        <div className="flex items-center justify-between gap-4">
+          <dt className={textStyles.caption}>Confidence</dt>
+          <dd className="text-base font-medium tabular-nums text-foreground">
+            {confidencePercent}%
+          </dd>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <dt className={textStyles.caption}>Evidence</dt>
+          <dd className="text-right text-base font-medium tabular-nums text-foreground">
+            {evidenceCount} {evidenceLabel(evidenceCount)}
+          </dd>
+        </div>
+      </dl>
     </Card>
   );
 }

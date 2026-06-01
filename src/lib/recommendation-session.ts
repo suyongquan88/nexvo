@@ -1,33 +1,51 @@
 import type { TrustMetrics } from "@/components/TrustScoreCard";
-import { previewTrustMetrics } from "@/lib/trust";
+import {
+  parseProductRecommendations,
+  type ProductRecommendation,
+} from "@/lib/parse-product-recommendations";
 
 const STORAGE_KEY = "nexvo.recommendation";
+
+export type { ProductRecommendation };
 
 export type RecommendationSession = {
   question: string;
   answer: string;
   demo?: boolean;
-  trust: TrustMetrics;
+  products: ProductRecommendation[];
+  buyingTips: string;
   productName: string;
   summary: string;
   whyWeRecommend: string[];
+  trust: TrustMetrics;
 };
+
+function toTrustMetrics(trustScore: number): TrustMetrics {
+  return {
+    score: trustScore,
+    confidence: Math.min(0.95, 0.55 + trustScore / 200),
+    evidenceCount: 0,
+  };
+}
 
 export function buildRecommendationSession(
   question: string,
   answer: string,
   demo = false
 ): RecommendationSession {
-  const parsed = parseRecommendationContent(answer);
+  const { products, buyingTips } = parseProductRecommendations(answer);
+  const top = products[0]!;
 
   return {
     question,
     answer,
     demo,
-    trust: previewTrustMetrics(answer.length),
-    productName: parsed.productName,
-    summary: parsed.summary,
-    whyWeRecommend: parsed.whyWeRecommend,
+    products,
+    buyingTips,
+    productName: top.productName,
+    summary: products.map((p) => `${p.rank}. ${p.productName}`).join(" · "),
+    whyWeRecommend: products.map((p) => p.summary).slice(0, 5),
+    trust: toTrustMetrics(top.trustScore),
   };
 }
 
@@ -42,58 +60,28 @@ export function loadRecommendationSession(): RecommendationSession | null {
   if (!raw) return null;
 
   try {
-    return JSON.parse(raw) as RecommendationSession;
+    const data = JSON.parse(raw) as RecommendationSession;
+    const first = data.products?.[0];
+    const needsReparse =
+      !Array.isArray(data.products) ||
+      data.products.length === 0 ||
+      !first?.searchKeyword ||
+      !first?.productName ||
+      !first?.detail ||
+      "highlights" in (first as object) ||
+      "name" in (first as object) ||
+      data.buyingTips === undefined;
+
+    if (needsReparse) {
+      return buildRecommendationSession(
+        data.question,
+        data.answer,
+        data.demo
+      );
+    }
+
+    return data;
   } catch {
     return null;
   }
-}
-
-function parseRecommendationContent(answer: string): {
-  productName: string;
-  summary: string;
-  whyWeRecommend: string[];
-} {
-  const lines = answer
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  const bulletLines = lines
-    .filter((line) => /^[-*•]/.test(line) || /^\d+\./.test(line))
-    .map((line) => line.replace(/^[-*•]\s*/, "").replace(/^\d+\.\s*/, ""));
-
-  const boldName = answer.match(/\*\*([^*]+)\*\*/)?.[1]?.trim();
-
-  const recommendationLine = lines.find((line) =>
-    /recommend/i.test(line)
-  );
-
-  let productName = boldName ?? "Your recommended choice";
-
-  if (recommendationLine) {
-    const afterColon = recommendationLine.split(":").slice(1).join(":").trim();
-    if (afterColon.length > 0 && afterColon.length < 120) {
-      productName = afterColon.replace(/\*\*/g, "");
-    }
-  }
-
-  const summary =
-    lines.find((line) => !line.startsWith("**") && !/^[-*•\d]/.test(line)) ??
-    lines[0] ??
-    answer.slice(0, 280);
-
-  const whyWeRecommend =
-    bulletLines.length > 0
-      ? bulletLines.slice(0, 5)
-      : [
-          "Matches your stated priorities and constraints.",
-          "Favors verified buyer signals over sponsored rankings.",
-          "Transparent trade-offs—no merchant-paid placement.",
-        ];
-
-  return {
-    productName,
-    summary: summary.length > 320 ? `${summary.slice(0, 317)}…` : summary,
-    whyWeRecommend,
-  };
 }

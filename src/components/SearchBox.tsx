@@ -1,23 +1,25 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent } from "react";
 import { Button } from "@/design-system/Button";
 import { Card } from "@/design-system/Card";
 import { textStyles } from "@/design-system/typography";
 
 type SearchBoxProps = {
+  question: string;
+  onQuestionChange: (question: string) => void;
   onSearch: (question: string) => void;
   isLoading?: boolean;
   disabled?: boolean;
 };
 
 export function SearchBox({
+  question,
+  onQuestionChange,
   onSearch,
   isLoading = false,
   disabled = false,
 }: SearchBoxProps) {
-  const [question, setQuestion] = useState("");
-
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     const trimmed = question.trim();
@@ -39,7 +41,7 @@ export function SearchBox({
         <textarea
           id="nexvo-question"
           value={question}
-          onChange={(e) => setQuestion(e.target.value)}
+          onChange={(e) => onQuestionChange(e.target.value)}
           placeholder="What would you like help choosing today?"
           rows={3}
           disabled={isLoading || disabled}

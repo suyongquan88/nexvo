@@ -82,8 +82,12 @@ export function UserFeedbackSection() {
           <Button href="/feedback?type=issue" variant="outline" size="sm">
             Report issue
           </Button>
-          <Button href="/feedback" variant="outline" size="sm">
-            Full feedback
+          <Button
+            href="/feedback?type=challenge"
+            variant="outline"
+            size="sm"
+          >
+            Challenge
           </Button>
         </div>
       </div>

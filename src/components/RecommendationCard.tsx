@@ -1,3 +1,6 @@
+import { ProductCompareCard } from "@/components/recommendation/ProductCompareCard";
+import { buildRecommendationSession } from "@/lib/recommendation-session";
+
 type RecommendationCardProps = {
   question: string | null;
   answer: string | null;
@@ -24,6 +27,11 @@ export function RecommendationCard({
   error = null,
   isDemo = false,
 }: RecommendationCardProps) {
+  const parsed =
+    answer && question
+      ? buildRecommendationSession(question, answer, isDemo)
+      : null;
+
   return (
     <section
       aria-label="Recommendation"
@@ -77,14 +85,17 @@ export function RecommendationCard({
               </p>
             </div>
 
-            <div className="flex-1">
-              <p className="text-xs font-medium uppercase tracking-wide text-nexvo-muted">
-                Our recommendation
-              </p>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
-                {answer}
-              </p>
-            </div>
+            {parsed ? (
+              <div className="flex flex-1 flex-col gap-3">
+                {parsed.products.slice(0, 5).map((product) => (
+                  <ProductCompareCard
+                    key={product.rank}
+                    product={product}
+                    variant="compact"
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-nexvo-border bg-background px-4 py-12 text-center">

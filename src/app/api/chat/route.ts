@@ -1,15 +1,16 @@
 import OpenAI from "openai";
+import { chat } from "@/lib/ai";
 import { generateDemoAnswer, shouldFallbackToDemo } from "@/lib/demo-answer";
-import { createNexvoCompletion } from "@/lib/openai-chat";
 import { mapOpenAiError } from "@/lib/openai-errors";
 
 const MAX_QUESTION_LENGTH = 4000;
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-type ChatSuccessBody = { answer: string; demo?: boolean };
+type ChatSuccessBody = {
+  answer: string;
+  model: string;
+  provider: string;
+  demo?: boolean;
+};
 type ChatErrorBody = { error: string; code?: string };
 
 function jsonResponse<T extends ChatSuccessBody | ChatErrorBody>(
@@ -35,11 +36,6 @@ function logApiError(context: string, error: unknown): void {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.OPENAI_API_KEY) {
-    console.error("[NEXVO API] OPENAI_API_KEY is not configured");
-    return jsonResponse({ error: "Service is not configured." }, 503);
-  }
-
   let body: unknown;
   try {
     body = await req.json();
@@ -72,17 +68,25 @@ export async function POST(req: Request) {
   }
 
   try {
-    const answer = await createNexvoCompletion(client, trimmed);
-    return jsonResponse({ answer }, 200);
+    const result = await chat(trimmed);
+    return jsonResponse(
+      { answer: result.content, model: result.model, provider: result.provider },
+      200
+    );
   } catch (error) {
-    logApiError("OpenAI request failed", error);
+    logApiError("AI request failed", error);
 
     if (shouldFallbackToDemo(error)) {
       console.warn(
         "[NEXVO API] Using demo fallback (quota unavailable or NEXVO_DEMO_MODE=true)"
       );
       return jsonResponse(
-        { answer: generateDemoAnswer(trimmed), demo: true },
+        {
+          answer: generateDemoAnswer(trimmed),
+          model: "demo",
+          provider: "demo",
+          demo: true,
+        },
         200
       );
     }

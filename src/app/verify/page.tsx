@@ -1,19 +1,14 @@
 "use client";
 
 import { PurchaseVerificationForm } from "@/components/verify/PurchaseVerificationForm";
-import { BulletList } from "@/components/layout/BulletList";
 import { FormCard } from "@/components/layout/FormCard";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PageShell } from "@/components/layout/PageShell";
+import { cn } from "@/design-system/cn";
+import { textStyles } from "@/design-system/typography";
 import { useRecommendationSession } from "@/hooks/useRecommendationSession";
 import { NAV } from "@/lib/navigation";
 import { FOOTERS } from "@/lib/site-copy";
-
-const VERIFY_NOTES = [
-  "Screenshots are reviewed before affecting trust scores.",
-  "No merchant can pay to alter your verification.",
-  "Redact payment details you don't want to share.",
-];
 
 export default function VerifyPage() {
   const { session } = useRecommendationSession();
@@ -39,7 +34,7 @@ export default function VerifyPage() {
             ) : (
               "your recommendation"
             )}
-            . Privacy first — we only use this to improve trust scores.
+            . We only use this to improve trust scores.
           </>
         }
       />
@@ -48,9 +43,15 @@ export default function VerifyPage() {
         <PurchaseVerificationForm />
       </FormCard>
 
-      <div className="mt-6">
-        <BulletList items={VERIFY_NOTES} />
-      </div>
+      <p
+        className={cn(
+          "mt-6 rounded-xl border border-nexvo-purple-100 bg-nexvo-purple-50/60 px-4 py-3 text-center",
+          textStyles.caption,
+          "font-medium text-nexvo-purple-700"
+        )}
+      >
+        Nexvo never sells user data.
+      </p>
     </PageShell>
   );
 }

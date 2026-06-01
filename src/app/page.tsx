@@ -2,11 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AlertBanner } from "@/components/layout/AlertBanner";
 import { NexvoFooter } from "@/components/layout/NexvoFooter";
 import { PageShell } from "@/components/layout/PageShell";
 import { HeroSection } from "@/components/HeroSection";
-import { SearchBox } from "@/components/SearchBox";
 import { FOOTERS } from "@/lib/site-copy";
 import {
   buildRecommendationSession,
@@ -58,16 +56,11 @@ export default function Home() {
 
   return (
     <PageShell width="home" showHeader={false}>
-      <HeroSection />
-
-      <div className="mx-auto mt-10 w-full max-w-2xl lg:mt-12">
-        <SearchBox onSearch={handleSearch} isLoading={isLoading} />
-        {error ? (
-          <div className="mt-4">
-            <AlertBanner>{error}</AlertBanner>
-          </div>
-        ) : null}
-      </div>
+      <HeroSection
+        onSearch={handleSearch}
+        isLoading={isLoading}
+        error={error}
+      />
 
       <NexvoFooter bordered={false}>{FOOTERS.default}</NexvoFooter>
     </PageShell>

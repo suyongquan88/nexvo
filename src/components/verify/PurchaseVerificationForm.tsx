@@ -14,9 +14,11 @@ import {
 
 export type VerificationDraft = {
   platform: VerifyPlatform;
+  productUrl: string;
   rating: number;
   comment: string;
   screenshotName: string;
+  anonymous: boolean;
   submittedAt: string;
 };
 
@@ -28,11 +30,22 @@ type Props = {
   onSuccess?: (draft: VerificationDraft) => void;
 };
 
+function isValidUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function PurchaseVerificationForm({ onSuccess }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [platform, setPlatform] = useState<VerifyPlatform | "">("");
+  const [productUrl, setProductUrl] = useState("");
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [anonymous, setAnonymous] = useState(false);
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,13 +79,24 @@ export function PurchaseVerificationForm({ onSuccess }: Props) {
     event.preventDefault();
     setError(null);
 
-    if (!screenshot) {
-      setError("Please upload a purchase screenshot.");
+    if (!platform) {
+      setError("Please select a platform.");
       return;
     }
 
-    if (!platform) {
-      setError("Please select a platform.");
+    const trimmedUrl = productUrl.trim();
+    if (!trimmedUrl) {
+      setError("Please enter a product URL.");
+      return;
+    }
+
+    if (!isValidUrl(trimmedUrl)) {
+      setError("Please enter a valid product URL (https://…).");
+      return;
+    }
+
+    if (!screenshot) {
+      setError("Please upload a purchase screenshot.");
       return;
     }
 
@@ -83,9 +107,11 @@ export function PurchaseVerificationForm({ onSuccess }: Props) {
 
     const draft: VerificationDraft = {
       platform,
+      productUrl: trimmedUrl,
       rating,
       comment: comment.trim(),
       screenshotName: screenshot.name,
+      anonymous,
       submittedAt: new Date().toISOString(),
     };
 
@@ -98,7 +124,7 @@ export function PurchaseVerificationForm({ onSuccess }: Props) {
     return (
       <SuccessCard
         title="Proof received"
-        message="Thank you. Your screenshot is queued for review. Verified proof increases evidence count and strengthens the Trust Engine."
+        message="Thank you. Your verification is queued for review. Verified proof increases evidence count and strengthens the Trust Engine."
       />
     );
   }
@@ -107,9 +133,50 @@ export function PurchaseVerificationForm({ onSuccess }: Props) {
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       {error ? <AlertBanner>{error}</AlertBanner> : null}
 
-      {/* Upload Screenshot */}
       <fieldset className="space-y-2">
-        <legend className={textStyles.label}>Upload screenshot</legend>
+        <label htmlFor="platform" className={textStyles.label}>
+          Platform
+        </label>
+        <div className="relative">
+          <select
+            id="platform"
+            value={platform}
+            onChange={(e) => setPlatform(e.target.value as VerifyPlatform | "")}
+            className="nexvo-input appearance-none pr-10"
+          >
+            <option value="">Select where you purchased</option>
+            {VERIFY_PLATFORMS.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-nexvo-muted">
+            ▾
+          </span>
+        </div>
+      </fieldset>
+
+      <fieldset className="space-y-2">
+        <label htmlFor="product-url" className={textStyles.label}>
+          Product URL
+        </label>
+        <input
+          id="product-url"
+          type="url"
+          value={productUrl}
+          onChange={(e) => setProductUrl(e.target.value)}
+          placeholder="https://example.com/product"
+          className="nexvo-input"
+          autoComplete="off"
+        />
+        <p className={textStyles.caption}>
+          Link to the product page you purchased from.
+        </p>
+      </fieldset>
+
+      <fieldset className="space-y-2">
+        <legend className={textStyles.label}>Screenshot upload</legend>
         <p className={textStyles.caption}>
           Order confirmation or receipt (max {MAX_FILE_MB} MB)
         </p>
@@ -157,47 +224,14 @@ export function PurchaseVerificationForm({ onSuccess }: Props) {
             <span className={cn(textStyles.label, "text-nexvo-purple-700")}>
               Tap to upload
             </span>
-            <span className={textStyles.caption}>
-              or take a photo
-            </span>
+            <span className={textStyles.caption}>or take a photo</span>
           </button>
         )}
       </fieldset>
 
-      {/* Platform Select */}
-      <fieldset className="space-y-2">
-        <label
-          htmlFor="platform"
-          className={textStyles.label}
-        >
-          Platform
-        </label>
-        <div className="relative">
-          <select
-            id="platform"
-            value={platform}
-            onChange={(e) => setPlatform(e.target.value as VerifyPlatform | "")}
-            className="nexvo-input appearance-none pr-10"
-          >
-            <option value="">Select where you purchased</option>
-            {VERIFY_PLATFORMS.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-nexvo-muted">
-            ▾
-          </span>
-        </div>
-      </fieldset>
-
-      {/* Rating */}
       <fieldset className="space-y-3">
         <legend className={textStyles.label}>Rating</legend>
-        <p className={textStyles.caption}>
-          How was your purchase experience?
-        </p>
+        <p className={textStyles.caption}>How was your purchase experience?</p>
         <div
           className="flex justify-between gap-1"
           role="radiogroup"
@@ -229,12 +263,8 @@ export function PurchaseVerificationForm({ onSuccess }: Props) {
         ) : null}
       </fieldset>
 
-      {/* Comment */}
       <fieldset className="space-y-2">
-        <label
-          htmlFor="comment"
-          className={textStyles.label}
-        >
+        <label htmlFor="comment" className={textStyles.label}>
           Comment
           <span className="ml-1 font-normal text-nexvo-muted">(optional)</span>
         </label>
@@ -250,6 +280,28 @@ export function PurchaseVerificationForm({ onSuccess }: Props) {
           {comment.length}/{MAX_COMMENT}
         </p>
       </fieldset>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-nexvo-border bg-nexvo-purple-50/40 px-4 py-3">
+        <input
+          type="checkbox"
+          checked={anonymous}
+          onChange={(e) => setAnonymous(e.target.checked)}
+          className="mt-1 h-4 w-4 rounded border-nexvo-border text-nexvo-purple-600 focus:ring-nexvo-purple-500"
+        />
+        <span className="text-sm leading-relaxed">
+          <span className="font-medium text-foreground">
+            Submit anonymously
+          </span>
+          <span className="mt-0.5 block text-nexvo-muted">
+            Your verification helps the Trust Engine without showing your name
+            publicly.
+          </span>
+        </span>
+      </label>
+
+      <p className={cn(textStyles.caption, "text-center text-nexvo-muted")}>
+        Nexvo never sells user data.
+      </p>
 
       <Button type="submit" size="lg" fullWidth>
         Submit verification

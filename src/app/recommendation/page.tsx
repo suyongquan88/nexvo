@@ -1,18 +1,14 @@
 "use client";
 
-import { EvidenceCountSection } from "@/components/recommendation/EvidenceCountSection";
-import { ProductRecommendationSection } from "@/components/recommendation/ProductRecommendationSection";
-import { RecommendationSummarySection } from "@/components/recommendation/RecommendationSummarySection";
-import { UserFeedbackSection } from "@/components/recommendation/UserFeedbackSection";
-import { WhyWeRecommendSection } from "@/components/recommendation/WhyWeRecommendSection";
+import { TopProductRecommendations } from "@/components/recommendation/TopProductRecommendations";
+import { RecommendationAnalysisSection } from "@/components/recommendation/RecommendationAnalysisSection";
 import { EmptyStateCard } from "@/components/layout/EmptyStateCard";
-import { PageIntro } from "@/components/layout/PageIntro";
 import { PageLoading } from "@/components/layout/PageLoading";
 import { PageShell } from "@/components/layout/PageShell";
-import { TrustScoreCard } from "@/components/TrustScoreCard";
+import { Button } from "@/design-system/Button";
 import { useRecommendationSession } from "@/hooks/useRecommendationSession";
 import { NAV } from "@/lib/navigation";
-import { FOOTERS, SITE_TAGLINE } from "@/lib/site-copy";
+import { FOOTERS } from "@/lib/site-copy";
 
 export default function RecommendationPage() {
   const { session, ready } = useRecommendationSession();
@@ -34,25 +30,18 @@ export default function RecommendationPage() {
 
   return (
     <PageShell nav={NAV.recommendation} footer={FOOTERS.default}>
-      <PageIntro
-        eyebrow="Your verified recommendation"
-        title="Recommendation result"
-        description={`${SITE_TAGLINE} — We verify choices for people, not rankings for merchants.`}
-      />
+      <div className="flex flex-col gap-8">
+        <TopProductRecommendations data={session} />
 
-      <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
-        <div className="flex flex-col gap-6 lg:col-span-2">
-          <ProductRecommendationSection data={session} />
-          <RecommendationSummarySection data={session} />
-          <WhyWeRecommendSection data={session} />
-          <EvidenceCountSection trust={session.trust} />
-          <UserFeedbackSection />
-        </div>
+        <RecommendationAnalysisSection answer={session.answer} />
 
-        <div className="lg:col-span-1">
-          <div className="lg:sticky lg:top-8">
-            <TrustScoreCard trust={session.trust} />
-          </div>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button href="/why" variant="outline" fullWidth className="sm:flex-1">
+            Why this recommendation
+          </Button>
+          <Button href="/verify" fullWidth className="sm:flex-1">
+            Verify purchase
+          </Button>
         </div>
       </div>
     </PageShell>
