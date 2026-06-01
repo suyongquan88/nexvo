@@ -20,6 +20,13 @@
 # production
 /build
 
+# sqlite (sprint 2)
+/data/*.db
+/data/*.db-journal
+/data/*.db-wal
+/data/*.db-shm
+!/data/.gitkeep
+
 # misc
 .DS_Store
 *.pem

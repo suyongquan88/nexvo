@@ -6,7 +6,18 @@
 
 - Ubuntu 22.04 LTS（或相近版本）
 - 已开放防火墙端口 **3000**（或通过 Nginx 反代 80/443）
-- 项目根目录已配置 `.env.local`（API 密钥等，**不要**提交到 Git）
+- 项目根目录已配置 `.env.local`（API 密钥、数据库等，**不要**提交到 Git）
+- PostgreSQL 可用（`docker compose` 自带 `postgres` 服务，或本地已有实例）
+
+## 0. 环境变量
+
+复制 `env.example` 为 `.env.local`，至少配置：
+
+```bash
+DATABASE_URL="postgresql://nexvo:nexvo@localhost:5432/nexvo"
+```
+
+Docker 全栈部署时，`docker-compose.yml` 会为 `nexvo` 容器注入指向 `postgres` 服务的 `DATABASE_URL`（覆盖本地 localhost URL）。
 
 ## 1. 安装 Docker
 
@@ -42,7 +53,33 @@ cd nexvo
 
 将生产环境变量写入 `.env.local`（与本地开发相同格式，例如 `DEEPSEEK_API_KEY` 等）。
 
-## 3. 构建并启动
+## 3. 数据库迁移
+
+首次部署或 schema 更新后，在应用容器或本机执行：
+
+```bash
+# 仅启动数据库（本地开发）
+docker compose up -d postgres
+
+# 本机（需 DATABASE_URL 指向 localhost）
+npm install
+npx prisma migrate deploy
+
+# 或在已运行的 nexvo 容器内
+docker compose exec nexvo npx prisma migrate deploy
+```
+
+验证表已创建：
+
+```bash
+npx prisma studio
+# 或
+docker compose exec postgres psql -U nexvo -d nexvo -c '\dt'
+```
+
+应包含：`VisitorSession`、`SearchHistory`、`Favorite`。
+
+## 4. 构建并启动
 
 ```bash
 docker compose up -d --build
@@ -62,7 +99,7 @@ docker compose logs -f nexvo
 
 浏览器访问：`http://<服务器IP>:3000`
 
-## 4. 常用运维命令
+## 5. 常用运维命令
 
 ```bash
 # 停止
@@ -76,7 +113,7 @@ docker compose up -d --build
 docker compose restart nexvo
 ```
 
-## 5. 生产建议（可选）
+## 6. 生产建议（可选）
 
 ### 反向代理与 HTTPS
 
@@ -100,10 +137,12 @@ environment:
   - HOSTNAME=0.0.0.0
 ```
 
-## 6. 文件说明
+## 7. 文件说明
 
 | 文件 | 说明 |
 |------|------|
 | `Dockerfile` | `node:22-alpine`，安装依赖、`npm run build`、`npm start` |
 | `.dockerignore` | 排除 `node_modules`、`.next`、`.git`、`.env.local` |
-| `docker-compose.yml` | 服务 `nexvo`，端口 3000，加载 `.env.local` |
+| `docker-compose.yml` | `postgres` + `nexvo`，端口 3000 / 5432 |
+| `prisma/schema.prisma` | Sprint 2 数据模型（匿名会话、历史、收藏） |
+| `env.example` | 环境变量模板 |

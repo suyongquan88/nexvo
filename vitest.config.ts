@@ -5,6 +5,11 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    globalSetup: ["./vitest.global-setup.ts"],
+    fileParallelism: false,
+    env: {
+      DATABASE_URL: "file:./data/nexvo-test.db",
+    },
   },
   resolve: {
     alias: {
