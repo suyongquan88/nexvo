@@ -1,0 +1,9 @@
+services:
+  nexvo:
+    build: .
+    container_name: nexvo
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
